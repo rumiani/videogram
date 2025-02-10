@@ -1,6 +1,5 @@
 import channelVsReply from "./commandHandlers/channelVsReply";
 import channelInfoReply from "./commandHandlers/channelInfoReply";
-import { currenciesComandList } from "../../../../../data/assets";
 
 export default async function commandHandler(messageText: string) {
   type CommandHandler = (
@@ -23,7 +22,6 @@ export default async function commandHandler(messageText: string) {
     "/list": () => "Here are your favorite YouTube channels: ...",
     "/help": () =>
       `Available commands:\n/menu \n/Currencies\nContact the developer: @rumimaz`,
-    "/currencies":() => `Currencies List:\n${currenciesComandList}`
   };
   const commandArray = messageText.split(" ").filter((item) => item.trim() !== "");
   const handler = commandReplies[commandArray[0]];

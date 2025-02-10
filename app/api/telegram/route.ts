@@ -1,23 +1,12 @@
-// import usersForYoutube from "@/data/usersForYoutube";
-// import { formatNumHandler } from "@/handlers/formatNumbers/formatNumbers";
-// import channelInfoHandler from "@/handlers/videoHandler/channelHandler/channelInfoHandler";
-// import prisma from "@/lib/prisma";
-import { Bot, webhookCallback } from "grammy";
+import { formatNumHandler } from "@/handlers/formatNumbers/formatNumbers";
+import channelInfoHandler from "@/handlers/videoHandler/channelHandler/channelInfoHandler";
+import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { webhookCallback } from "grammy";
+import { bot } from "@/app/bot";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
-
-const token = process.env.TELEGRAM_BOT_TOKEN;
-if (!token)
-  throw new Error("TELEGRAM_BOT_TOKEN environment variable not found.");
-
-const bot = new Bot(token);
-
-bot.command("start", (ctx) => ctx.reply("start"));
-bot.command("menu", (ctx) => ctx.reply("menu"));
-
-bot.on("message:text", async (ctx) => ctx.reply("text message"));
 
 export const POST = async (req: Request) => {
   const headers = req.headers;
@@ -25,39 +14,41 @@ export const POST = async (req: Request) => {
   const isCronJob = userAgent && userAgent.includes("cron-job.org");
   try {
     if (isCronJob) {
-      // for (const user of usersForYoutube) {
-      //   const userChannelInfo = await channelInfoHandler(user.youtube_username);
-      //   const youtubeSubs = +userChannelInfo.statistics.subscriberCount;
-      //   const storedUser = await prisma.users.findFirst({
-      //     where: { telegram_id: user.telegram_id.toString() },
-      //   });
+      const allChannels = await prisma.channel.findMany({
+        include: { user: true },
+      });
+      for (const channel of allChannels) {
+        const userChannelInfo = await channelInfoHandler(channel.channelId);
+        const currentYoutubeSubs = +userChannelInfo.statistics.subscriberCount;
+        console.log(currentYoutubeSubs, channel.subscriberCount);
 
-      //   if (storedUser && youtubeSubs > storedUser?.subs) {
-      //     bot.api.sendMessage(
-      //       user.telegram_id,
-      //       `You have got ${
-      //         youtubeSubs - +storedUser.subs
-      //       } new subscribers 🎉🎉🎉 \nNow you have ${formatNumHandler(
-      //         youtubeSubs
-      //       )} subscribers`
-      //     );
-      //     bot.api.sendMessage(1028887352, storedUser?.subs.toString());
+        if (currentYoutubeSubs > channel.subscriberCount) {
+          bot.api.sendMessage(
+            channel.user.telegramId,
+            `🎉🎉🎉 
+            You have got ${
+              currentYoutubeSubs - channel.subscriberCount
+            } new subscribers
+            Now you have ${formatNumHandler(currentYoutubeSubs)} subscribers`
+          );
 
-      //     await prisma.users.update({
-      //       where: { telegram_id: user.telegram_id.toString() },
-      //       data: {
-      //         subs: youtubeSubs,
-      //       },
-      //     });
-      //   }
-      // }
-      // return NextResponse.json("Request from cronjob processed.", {
-      //   status: 200,
-      // });
+          await prisma.channel.update({
+            where: { channelId: channel.channelId },
+            data: {
+              subscriberCount: currentYoutubeSubs,
+            },
+          });
+        }
+      }
+      return NextResponse.json("Request from cronjob processed.", {
+        status: 200,
+      });
     } else {
       return webhookCallback(bot, "std/http")(req);
     }
-  } catch {
+  } catch (e) {
+    console.log(e);
+
     return NextResponse.json("Server error.", { status: 500 });
   }
 };

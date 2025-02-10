@@ -1,4 +1,4 @@
-import { formatNumHandler } from "../general/formatNumbers";
+import { formatNumHandler } from "../formatNumbers/formatNumbers";
 import extractVideoIdHandler from "./extractVideoId";
 
 export default async function videoInfoHandler(commandArray: string[]) {

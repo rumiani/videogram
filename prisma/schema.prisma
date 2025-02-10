@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum TableStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id           String      @id @default(uuid()) @db.Uuid
+  telegramId   String      @unique
+  name         String?
+  username     String?     @unique
+  role         UserRole    @default(USER)
+  languageCode String?
+  status       TableStatus @default(ACTIVE)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  downloads   VideoDownload[]
+  ChannelData Channel[]
+
+  @@index([telegramId])
+  @@index([username])
+}
+
+model VideoDownload {
+  id           String    @id @default(uuid()) @db.Uuid
+  user         User      @relation(fields: [userId], references: [id])
+  userId       String    @db.Uuid
+  videoUrl     String
+  format       String
+  size         Float?
+  downloadedAt DateTime?
+
+  @@index([userId, videoUrl])
+}
+
+model Channel {
+  id              String   @id @default(uuid()) @db.Uuid
+  user            User     @relation(fields: [userId], references: [id])
+  userId          String   @unique @db.Uuid
+  channelId       String   @unique
+  title           String
+  description     String?
+  subscriberCount Int
+  videoCount      Int
+  viewCount       Int
+  lastUpdated     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([channelId])
+}

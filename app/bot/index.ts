@@ -1,66 +1,39 @@
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 import { replies } from "@/handlers/ui/replies/replies";
-import { Bot } from "grammy";
+import { Bot, session } from "grammy";
+import { MyContext } from "../types/telegram";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 if (!token)
   throw new Error("TELEGRAM_BOT_TOKEN environment variable not found.");
 
-export const bot = new Bot(token);
+export const bot = new Bot<MyContext>(token!);
+bot.use(session({ initial: () => ({ step: "" }) }));
+
 bot.command("start", replies.startReply);
 bot.command("menu", replies.menuReply);
 
-// bot.on("callback_query:data", async (ctx) => {
-//   const { message, data } = ctx.callbackQuery;
-//   if (message) await ctx.deleteMessage();
+bot.on("callback_query:data", async (ctx) => {
+  const { message, data } = ctx.callbackQuery;
+  if (message) await ctx.deleteMessage();
 
-//   const [action, value] = data.split("_");
+  const [action, value] = data.split("_");
 
-//   switch (action) {
-//     case "category":
-//       switch (value) {
-//         case "add-crypto":
-//           return replies.assetReply(ctx, "crypto");
-//         case "add-fiat":
-//           return replies.assetReply(ctx, "fiat");
-//         case "add-gold":
-//           return replies.assetReply(ctx, "gold");
-//         case "see-list":
-//           return replies.listReply(ctx);
-//         case "remove-assets":
-//           return replies.removeTrackedAssetReply(ctx);
-//         case "assets-list":
-//           return replies.assetsListReply(ctx);
-//       }
-//       break;
+  switch (action) {
+    case "channel":
+      switch (value) {
+        case "youtube":
+          ctx.session.step = "awaiting_channel"; // Set state to expect input
+          await ctx.reply("Please enter the YouTube channel name or URL:");
+      }
+      break;
 
-//     case "add-crypto":
-//     case "add-fiat":
-//     case "add-gold":
-//       return replies.percentageReply(ctx, value);
+    default:
+      return ctx.reply("default reply");
+  }
 
-//     case "remove-asset":
-//       const messageToUser = await removeAssetTrack(ctx, value);
-//       return ctx.reply(messageToUser);
-
-//     default:
-//       const allAssets = await allAssetsObjectsFromDB();
-//       if (allAssets?.assetsCodes.includes(action)) {
-//         const asset = allAssets.allAssets.find(
-//           (asset) => asset?.code.toLowerCase() === action.toLowerCase()
-//         );
-//         const updateMessage = await updatUserAssetTracks({
-//           code: action,
-//           percentage: value,
-//           userId: +ctx.from?.id,
-//           price: +asset!.currentPrice,
-//         });
-//         return ctx.reply(updateMessage!);
-//       }
-//   }
-
-//   ctx.answerCallbackQuery();
-// });
+  ctx.answerCallbackQuery();
+});
 
 bot.on("message:text", async (ctx) => replies.messageTextReply(ctx));

@@ -2,7 +2,7 @@
 
 import linkDetector from "../linkDetector/linkDetector";
 import channelInfoHandler from "../videoHandler/channelHandler/channelInfoHandler";
-import extractChannelIdHandler from "../videoHandler/channelHandler/extractChannelId ";
+import { extractChannelIdHandler } from "../videoHandler/channelHandler/extractChannelId ";
 // import videoDl from "../videoHandler/videoDl";
 import commandHandler from "./commandHandler/commandHandler";
 
@@ -24,7 +24,7 @@ export default async function inputTypeHandler(messageText: string) {
   if (isVideo) {
   }
   if (isChannel) {
-    const channelId = extractChannelIdHandler(cleanedText);
+    const channelId = await extractChannelIdHandler(cleanedText);
     return channelInfoHandler(channelId);
   }
 }

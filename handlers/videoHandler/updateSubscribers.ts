@@ -1,8 +1,5 @@
 // import fs from 'fs';
-// import { Bot } from 'grammy';
 
-// const botToken = process.env.TELEGRAM_BOT_TOKEN!;
-// const bot = new Bot(botToken);
 // export default async function extractVideoIdHandler(url: string) {
 //     const userFilePath = './lastSubscriberCount.json';
 //     function getUserSubscriberData(): Record<string, number> {

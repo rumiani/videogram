@@ -1,5 +1,6 @@
-import channelInfoHandler from "@/app/handlers/channelHandler/channelInfoHandler";
-import { formatNumHandler } from "@/app/handlers/general/formatNumbers";
+
+import { formatNumHandler } from "@/handlers/formatNumbers/formatNumbers";
+import channelInfoHandler from "@/handlers/videoHandler/channelHandler/channelInfoHandler";
 import _ from "lodash";
 
 export default async function channelVsReply(commandArray: string[]) {
