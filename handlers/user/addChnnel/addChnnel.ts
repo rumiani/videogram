@@ -5,30 +5,35 @@ import { extractChannelIdHandler } from "@/handlers/videoHandler/channelHandler/
 import channelInfoHandler from "@/handlers/videoHandler/channelHandler/channelInfoHandler";
 
 export async function addChannel(ctx: MyContext) {
+  const message = ctx.message!.text;
   try {
-    if (ctx.from!.is_bot) return null;
-
     const existingUser = await userInfo(ctx);
     if (!existingUser) return null;
-    const channelId = ctx.message!.text
-      ? await extractChannelIdHandler(ctx.message!.text)
-      : null;
 
+    const channelId = await extractChannelIdHandler(message!);
     const storedChannel = existingUser!.ChannelData.find(
       (channel) => channel.channelId === channelId
     );
-    if (storedChannel) return { channel: storedChannel, isNewChannel: false };
-    if (!channelId)
+    const existedChannel = await prisma.channel.findFirst({
+      where: { channelId },
+    });
+    if (existedChannel) {
       return {
-        channel: storedChannel,
+        channel: existedChannel,
         isNewChannel: false,
-        message: "Wront url",
+        subs: existedChannel.subscriberCount,
       };
+    }
+    const userChannelInfo = await channelInfoHandler(channelId);
+    const subs = +userChannelInfo.statistics.subscriberCount;
+    if (storedChannel)
+      return { channel: storedChannel, isNewChannel: false, subs };
+    if (!channelId) return null;
     const channelInfo = await channelInfoHandler(channelId);
     const { viewCount, subscriberCount, videoCount } = channelInfo.statistics;
     const createdChannel = await prisma.channel.create({
       data: {
-        userId: existingUser!.id || "",
+        userId: existingUser!.id,
         channelId: channelId,
         title: "",
         subscriberCount: +subscriberCount,
@@ -37,7 +42,7 @@ export async function addChannel(ctx: MyContext) {
       },
     });
 
-    return { channel: createdChannel, isNewChannel: true };
+    return { channel: createdChannel, isNewChannel: true, subs };
   } catch (error: unknown) {
     if (error instanceof Error) console.log(error.message);
   }

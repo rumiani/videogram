@@ -25,7 +25,7 @@ bot.on("callback_query:data", async (ctx) => {
       switch (value) {
         case "youtube":
           ctx.session.step = "awaiting_channel"; // Set state to expect input
-          await ctx.reply("Please enter the YouTube channel name or URL:");
+          await ctx.reply("Please enter your YouTube channel's URL:");
       }
       break;
 
@@ -37,3 +37,4 @@ bot.on("callback_query:data", async (ctx) => {
 });
 
 bot.on("message:text", async (ctx) => replies.messageTextReply(ctx));
+

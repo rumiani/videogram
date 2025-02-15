@@ -1,10 +1,11 @@
-import { bot } from "@/app/bot/index";
+import { bot } from "@/app/bot";
 import { keyboardBuilder } from "../keyboardBuilder/keyboardBuilder";
 import { addUser } from "@/handlers/user/addUser/addUser";
 import commands from "@/handlers/commands/commands";
 import { menuKeyboardData } from "@/data/keyboardObjects";
 import { MyContext } from "@/app/types/telegram";
 import { addChannel } from "@/handlers/user/addChnnel/addChnnel";
+import { formatNumHandler } from "@/handlers/formatNumbers/formatNumbers";
 
 const startReply = async (ctx: MyContext) => {
   const adminId = +process.env.TELEGRAM_ADMIN_ID!;
@@ -28,13 +29,30 @@ const menuReply = async (ctx: MyContext) => {
 
 const messageTextReply = async (ctx: MyContext) => {
   if (ctx.session.step === "awaiting_channel" && ctx.message!.text) {
-    if (!ctx.message) return ctx.reply("Bad request, click /help");
+    if (ctx.from?.is_bot) return;
+    if (!ctx.message?.text) return ctx.reply("Bad request, click /help");
     ctx.session.step = ""; // Reset state after receiving input
     const addChannelResponse = await addChannel(ctx);
-    if (addChannelResponse)
+
+    if (addChannelResponse) {
+      if (addChannelResponse?.isNewChannel) {
+        return await ctx.reply(
+          `YouTube channel has been saved and you will be notified when getting new subscribers.\ncurrent subscribers: ${formatNumHandler(
+            addChannelResponse.subs
+          )}`
+        );
+      } else {
+        return await ctx.reply(
+          `YouTube channel already exist and you will be notified when getting new subscribers.\ncurrent subscribers: ${formatNumHandler(
+            addChannelResponse.subs
+          )}`
+        );
+      }
+    } else {
       return await ctx.reply(
-        `YouTube channel has been saved and you will be notified when getting new subscribers.`
+        `Wrong url!\nPlease enter a valid Youtube channel url.`
       );
+    }
   } else {
     if (ctx.message!.text) {
       const cleanedText = ctx

@@ -22,9 +22,9 @@ export const POST = async (req: Request) => {
       const userChannelInfo = await channelInfoHandler(channel.channelId);
       const currentYoutubeSubs = +userChannelInfo.statistics.subscriberCount;
 
-      if (currentYoutubeSubs > channel.subscriberCount) {
+      if (currentYoutubeSubs > channel.subscriberCount) {        
         bot.api.sendMessage(
-          channel.user.telegramId,
+          +channel.user.telegramId,
           `🎉🎉🎉 
             You have got ${
               currentYoutubeSubs - channel.subscriberCount
@@ -44,7 +44,7 @@ export const POST = async (req: Request) => {
       status: 200,
     });
   } catch (e) {
-    console.log(e);
+    console.log(49,e);
 
     return NextResponse.json("Server error.", { status: 500 });
   }
