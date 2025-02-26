@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 export const POST = async (req: Request) => {
-  const userAgent = req.headers.get("user-agent");  
+  const userAgent = req.headers.get("user-agent");
   const UnauthorizedReq =
     req.headers.get("X-Cron-Token") !== process.env.CRON_SECRET;
   try {
@@ -21,8 +21,9 @@ export const POST = async (req: Request) => {
     for (const channel of allChannels) {
       const userChannelInfo = await channelInfoHandler(channel.channelId);
       const currentYoutubeSubs = +userChannelInfo.statistics.subscriberCount;
+      console.log(userChannelInfo);
 
-      if (currentYoutubeSubs > channel.subscriberCount) {        
+      if (currentYoutubeSubs > channel.subscriberCount) {
         bot.api.sendMessage(
           +channel.user.telegramId,
           `🎉🎉🎉 
@@ -44,7 +45,7 @@ export const POST = async (req: Request) => {
       status: 200,
     });
   } catch (e) {
-    console.log(49,e);
+    console.log(49, e);
 
     return NextResponse.json("Server error.", { status: 500 });
   }

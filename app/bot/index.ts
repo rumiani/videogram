@@ -30,11 +30,10 @@ bot.on("callback_query:data", async (ctx) => {
       break;
 
     default:
-      return ctx.reply("default reply");
+      return;
   }
 
   ctx.answerCallbackQuery();
 });
 
 bot.on("message:text", async (ctx) => replies.messageTextReply(ctx));
-
